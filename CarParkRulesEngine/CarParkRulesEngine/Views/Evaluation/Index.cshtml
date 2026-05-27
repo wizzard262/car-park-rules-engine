@@ -1,0 +1,19 @@
+﻿@model EvaluateViewModel
+
+<h2>Evaluate Parking Session</h2>
+
+<form method="post" asp-action="Evaluate">
+    <label>Car Park ID</label>
+    <input asp-for="CarParkId" class="form-control" />
+
+    <label>VRN</label>
+    <input asp-for="VRN" class="form-control" />
+
+    <label>Entry Time</label>
+    <input asp-for="EntryTime" type="datetime-local" class="form-control" />
+
+    <label>Exit Time</label>
+    <input asp-for="ExitTime" type="datetime-local" class="form-control" />
+
+    <button type="submit" class="btn btn-primary mt-3">Evaluate</button>
+</form>

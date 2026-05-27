@@ -1,0 +1,71 @@
+﻿@model CarParkProcessingData
+
+<h2>Rules for Car Park ID = 1</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Rule ID</th>
+            <th>Type</th>
+            <th>Priority</th>
+            <th>VRN</th>
+            <th>Group</th>
+            <th>Window</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model.Rules)
+        {
+            <tr>
+                <td>@r.ParkingRuleId</td>
+                <td>@r.RuleType</td>
+                <td>@r.Priority</td>
+                <td>@r.VRN</td>
+                <td>@r.VRNGroupId</td>
+                <td>@r.TimeWindowId</td>               
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<h2>Sessions for Car Park ID = 1</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Session ID</th>
+            <th>VRN</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Duration</th>
+            <th>Chargeable</th>
+            <th>Charge</th>
+            <th>Overstay</th>
+            <th>Paid</th>
+            <th>Exempt</th>
+            <th>Applied Rule</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model.Sessions)
+        {
+            <tr>
+                <td>@s.SessionId</td>
+                <td>@s.VRN</td>
+                <td>@s.EntryTimeUtc</td>
+                <td>@s.ExitTimeUtc</td>
+                <td>@s.DurationMinutes</td>
+                <td>@s.ChargeableMinutes</td>
+                <td>@s.CalculatedCharge</td>
+                <td>@(s.IsOverstay ? "Yes" : "No")</td>
+                <td>@(s.IsPaid ? "Yes" : "No")</td>
+                <td>@(s.IsExempt ? "Yes" : "No")</td>
+                <td>@s.AppliedRuleType (#@s.AppliedRuleId)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr/>

@@ -1,0 +1,25 @@
+﻿@model EvaluateViewModel
+
+<h2>Evaluation Result</h2>
+
+<p><strong>VRN:</strong> @Model.VRN</p>
+<p><strong>Session Minutes:</strong> @Model.SessionMinutes</p>
+
+<p><strong>Allowed Minutes:</strong> @Model.AllowedMinutes</p>
+
+<p><strong>Overstay Minutes:</strong> @Model.Result.OverstayMinutes</p>
+
+<p><strong>Penalty:</strong> @(Model.Result.IsOverstay ? "YES" : "NO")</p>
+
+<p><strong>Charge:</strong> @Model.Result.Charge</p>
+
+
+<h3>Trace</h3>
+<ul>
+    @foreach (var line in Model.Result.Trace)
+    {
+        <li>@line</li>
+    }
+</ul>
+
+<a href="/Evaluation/Index">Back</a>
