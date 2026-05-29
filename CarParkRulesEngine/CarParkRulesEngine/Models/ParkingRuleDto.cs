@@ -8,7 +8,6 @@ public class ParkingRuleDto
     // Rule header
     public string RuleType { get; set; } = string.Empty;
     public int Priority { get; set; }
-    public string? VRN { get; set; } //ste:todo: populate
     public bool AppliesToAllVRNs { get; set; }
     public int? VRNGroupId { get; set; }
     public int? TimeWindowId { get; set; }
