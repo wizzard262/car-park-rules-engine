@@ -1,6 +1,7 @@
 ﻿@model EvaluateViewModel
 
 <h2>Evaluate Parking Session</h2>
+<p>Note: this does not add the parking session ot the database, it just evaluates it.</p>
 
 <form method="post" asp-action="Evaluate">
     <label>Car Park ID</label>
@@ -17,3 +18,7 @@
 
     <button type="submit" class="btn btn-primary mt-3">Evaluate</button>
 </form>
+
+<hr/>
+Architectural Diagram for a Car Park Rules Engine:
+<img src="~/images/architecturaldiagram.jpg" />

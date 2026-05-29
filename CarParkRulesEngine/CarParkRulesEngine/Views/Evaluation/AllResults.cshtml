@@ -2,6 +2,9 @@
 
 <h2>Rules for Car Park ID = 1</h2>
 
+
+These rules are applied in order of priority, so the first rule that matches a parking session is the one that is applied.<br/>
+The rules are evaluated in the following order:
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -14,7 +17,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var r in Model.Rules)
+        @foreach (var r in Model.Rules.OrderBy(r => r.Priority))
         {
             <tr>
                 <td>@r.ParkingRuleId</td>
@@ -67,5 +70,4 @@
         }
     </tbody>
 </table>
-
-<hr/>
+<img src="~/images/dbschema.png" />
