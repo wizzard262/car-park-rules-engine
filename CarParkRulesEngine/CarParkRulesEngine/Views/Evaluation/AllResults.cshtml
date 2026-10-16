@@ -1,73 +1,104 @@
 ﻿@model CarParkProcessingData
+@{
+    ViewData["Title"] = "Rules and sessions";
 
-<h2>Rules for Car Park ID = 1</h2>
+    // The setting each rule type uses, as one readable line
+    static string Details(ParkingRuleDto r)
+    {
+        var parts = new List<string>();
+        if (r.MaxFreeMinutes is int free) parts.Add($"{free} min free");
+        if (r.GraceMinutes is int grace) parts.Add($"{grace} min grace");
+        if (r.NoReturnMinutes is int noReturn) parts.Add($"no return for {noReturn} min");
+        if (r.PaidMinutes is int paid) parts.Add($"{paid} min paid");
+        if (r.ValidatedMinutes is int validated) parts.Add($"{validated} min validated");
+        if (r.WindowStart is TimeSpan start && r.WindowEnd is TimeSpan end) parts.Add($"{start:hh\\:mm}–{end:hh\\:mm}");
+        return parts.Count > 0 ? string.Join(", ", parts) : "–";
+    }
+}
 
+<section class="hero">
+    <div class="wrap">
+        <p class="eyebrow">Car park 1</p>
+        <h1>Rules and sessions</h1>
+        <p class="lead">The rules the engine applies, in priority order, and how every stored parking session came out.</p>
+    </div>
+</section>
 
-These rules are applied in order of priority, so the first rule that matches a parking session is the one that is applied.<br/>
-The rules are evaluated in the following order:
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Rule ID</th>
-            <th>Type</th>
-            <th>Priority</th>
-            <th>Apply to all VRN</th>
-            <th>VRN Group Id</th>
-            <th>Time Window Id</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var r in Model.Rules.OrderBy(r => r.Priority))
-        {
-            <tr>
-                <td>@r.ParkingRuleId</td>
-                <td>@r.RuleType</td>
-                <td>@r.Priority</td>
-                <td>@r.AppliesToAllVRNs</td>
-                <td>@r.VRNGroupId</td>
-                <td>@r.TimeWindowId</td>               
-            </tr>
-        }
-    </tbody>
-</table>
+<main class="wrap grid">
+    <section class="card card-wide" aria-labelledby="rules-title">
+        <h2 id="rules-title">Rules</h2>
+        <p class="muted small">Checked from the top: the first rule that matches a session decides it.</p>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="num">Priority</th>
+                        <th>Rule</th>
+                        <th>Applies to</th>
+                        <th>Details</th>
+                        <th class="num">Rule ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rules.OrderBy(r => r.Priority))
+                    {
+                        <tr>
+                            <td class="num" data-label="Priority">@r.Priority</td>
+                            <td data-label="Rule"><span class="badge badge-rule">@r.RuleType</span></td>
+                            <td data-label="Applies to">@(r.AppliesToAllVRNs ? "All cars" : $"VRN group {r.VRNGroupId}")@(r.TimeWindowId is int w ? $" · window {w}" : "")</td>
+                            <td data-label="Details">@Details(r)</td>
+                            <td class="num" data-label="Rule ID">@r.ParkingRuleId</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-<hr />
+    <section class="card card-wide" aria-labelledby="sessions-title">
+        <h2 id="sessions-title">Sessions <small class="muted">(@Model.Sessions.Count())</small></h2>
+        <p class="muted small">Times are UTC. Minutes: how long the car stayed, and how much of that was chargeable.</p>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>VRN</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th class="num">Stayed</th>
+                        <th class="num">Chargeable</th>
+                        <th class="num">Charge</th>
+                        <th>Overstay</th>
+                        <th>Paid</th>
+                        <th>Exempt</th>
+                        <th>Applied rule</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.Sessions)
+                    {
+                        <tr>
+                            <td data-label="VRN"><b>@s.VRN</b> <span class="muted small">#@s.SessionId</span></td>
+                            <td data-label="Entry">@s.EntryTimeUtc.ToString("d MMM yyyy HH:mm")</td>
+                            <td data-label="Exit">@s.ExitTimeUtc.ToString("HH:mm")</td>
+                            <td class="num" data-label="Stayed">@s.DurationMinutes min</td>
+                            <td class="num" data-label="Chargeable">@s.ChargeableMinutes min</td>
+                            <td class="num" data-label="Charge">@s.CalculatedCharge.ToString("0.00")</td>
+                            <td data-label="Overstay"><span class="badge @(s.IsOverstay ? "badge-yes" : "badge-no")">@(s.IsOverstay ? "Yes" : "No")</span></td>
+                            <td data-label="Paid">@(s.IsPaid ? "Yes" : "No")</td>
+                            <td data-label="Exempt">@(s.IsExempt ? "Yes" : "No")</td>
+                            <td data-label="Applied rule">@(s.AppliedRuleId == 0 ? "None" : $"{s.AppliedRuleType} (#{s.AppliedRuleId})")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-<h2>Sessions for Car Park ID = 1</h2>
-
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Session ID</th>
-            <th>VRN</th>
-            <th>Entry</th>
-            <th>Exit</th>
-            <th>Duration</th>
-            <th>Chargeable</th>
-            <th>Charge</th>
-            <th>Overstay</th>
-            <th>Paid</th>
-            <th>Exempt</th>
-            <th>Applied Rule</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model.Sessions)
-        {
-            <tr>
-                <td>@s.SessionId</td>
-                <td>@s.VRN</td>
-                <td>@s.EntryTimeUtc</td>
-                <td>@s.ExitTimeUtc</td>
-                <td>@s.DurationMinutes</td>
-                <td>@s.ChargeableMinutes</td>
-                <td>@s.CalculatedCharge</td>
-                <td>@(s.IsOverstay ? "Yes" : "No")</td>
-                <td>@(s.IsPaid ? "Yes" : "No")</td>
-                <td>@(s.IsExempt ? "Yes" : "No")</td>
-                <td>@s.AppliedRuleType (#@s.AppliedRuleId)</td>
-            </tr>
-        }
-    </tbody>
-</table>
-<img src="~/images/dbschema.png" />
+    <section class="card card-wide" aria-labelledby="schema-title">
+        <h2 id="schema-title">Database schema</h2>
+        <div class="figure">
+            <img src="~/images/DbSchema.png" alt="Database schema: CarPark, Vehicle, ParkingSession, VRNGroup, VRNGroupMember, TimeWindow and ParkingRule, with one table per rule type: free parking, no return, validation, paid parking and grace period" loading="lazy" />
+        </div>
+    </section>
+</main>

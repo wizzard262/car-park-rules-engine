@@ -1,30 +1,90 @@
 ﻿@model EvaluateViewModel
+@{
+    ViewData["Title"] = "Evaluate a parking session";
+}
 
-<ul>
-    <li>C# MVC hosted on Azure: <a href="https://carpark-ehd8gmh0e2dwfze7.uksouth-01.azurewebsites.net/">https://carpark-ehd8gmh0e2dwfze7.uksouth-01.azurewebsites.net/</a></li>
-    <li>Azure SQL Server: wizzard262.database.windows.net using DB: ParkingEyeCarParks</li>
-    <li>Note: The low-tier SQL DB may take 30-90 secs to re-awake</li>
-</ul>
+<section class="hero">
+    <div class="wrap">
+        <p class="eyebrow">C# .NET &middot; MVC &middot; Rules engine &middot; Azure SQL</p>
+        <h1>Car Park Rules Engine</h1>
+        <p class="lead">Works out what a parking visit costs and whether it's an overstay, by running the car park's rules
+            in priority order: free parking windows, grace periods, no-return limits, paid time and validation.</p>
+    </div>
+</section>
 
-<h2>Evaluate Parking Session</h2>
-<p>Note: this does not add the parking session ot the database, it just evaluates it.</p>
+<main class="wrap grid">
+    <section class="card card-wide" aria-labelledby="evaluate-title">
+        <h2 id="evaluate-title">Evaluate a parking session</h2>
+        <p class="muted small">Pick an example or enter your own. Nothing is saved: the session is only checked against the rules.</p>
 
-<form method="post" asp-action="Evaluate">
-    <label>Car Park ID</label>
-    <input asp-for="CarParkId" class="form-control" />
+        <div class="presets" role="group" aria-label="Examples">
+            <button type="button" class="chip" data-vrn="NP03CCC" data-entry="2025-01-15T16:00" data-exit="2025-01-15T16:10">Grace period (10 min)</button>
+            <button type="button" class="chip" data-vrn="NR100BB" data-entry="2025-01-15T08:30" data-exit="2025-01-15T09:00">Free morning window</button>
+            <button type="button" class="chip" data-vrn="GR33FFF" data-entry="2025-01-15T14:00" data-exit="2025-01-15T15:15">Validated visit</button>
+            <button type="button" class="chip" data-vrn="GP44DDD" data-entry="2025-01-15T12:00" data-exit="2025-01-15T15:10">Paid, then overstayed</button>
+            <button type="button" class="chip" data-vrn="TEST123" data-entry="2025-01-15T12:00" data-exit="2025-01-15T16:00">Unknown car, 4 hours</button>
+        </div>
 
-    <label>VRN</label>
-    <input asp-for="VRN" class="form-control" />
+        <form method="post" asp-action="Evaluate">
+            <div class="form-grid">
+                <label>Car park ID
+                    <input asp-for="CarParkId" inputmode="numeric" />
+                </label>
+                <label>Registration (VRN)
+                    <input asp-for="VRN" autocapitalize="characters" autocomplete="off" />
+                    <span asp-validation-for="VRN" class="field-error"></span>
+                </label>
+                <label>Entry time
+                    <input asp-for="EntryTime" type="datetime-local" step="60" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                </label>
+                <label>Exit time
+                    <input asp-for="ExitTime" type="datetime-local" step="60" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                </label>
+            </div>
+            <button type="submit" class="button">Evaluate</button>
+        </form>
+    </section>
 
-    <label>Entry Time</label>
-    <input asp-for="EntryTime" type="datetime-local" class="form-control" />
+    <section class="card" aria-labelledby="about-title">
+        <h2 id="about-title">About this demo</h2>
+        <ul>
+            <li>C# MVC on Azure App Service.</li>
+            <li>Rules and past sessions live in the <code>ParkingEyeCarParks</code> database on Azure SQL server <code>wizzard262</code>.</li>
+            <li>The rules for car park 1, and how each stored session came out, are on the <a asp-action="AllResults">Rules and sessions</a> page.</li>
+        </ul>
+        <div class="notice notice-warn small">The database is on a low-cost tier that sleeps when unused, so the first request can take 30 to 90 seconds.</div>
+    </section>
 
-    <label>Exit Time</label>
-    <input asp-for="ExitTime" type="datetime-local" class="form-control" />
+    <section class="card" aria-labelledby="rules-title">
+        <h2 id="rules-title">How the rules work</h2>
+        <ol>
+            <li>Each car park has a list of rules, each with a priority.</li>
+            <li>A rule can apply to every car, or only to a group of registrations, and only in a time window.</li>
+            <li>The engine checks the rules in priority order; the first one that matches decides the charge.</li>
+            <li>It also looks up the car's previous exit, so a quick return can break a no-return rule.</li>
+            <li>The result shows every step it took (the trace).</li>
+        </ol>
+    </section>
 
-    <button type="submit" class="btn btn-primary mt-3">Evaluate</button>
-</form>
+    <section class="card card-wide" aria-labelledby="diagram-title">
+        <h2 id="diagram-title">Architecture for a car park rules engine</h2>
+        <div class="figure">
+            <a href="~/images/ArchitecturalDiagram.jpg" title="Open full size">
+                <img src="~/images/ArchitecturalDiagram.jpg" alt="Architecture diagram: entry and exit cameras send number plates to Azure Event Hub; Azure Functions match visits and check overstays against rules in SQL Server (with a Redis cache), passing work through Service Bus queues; an external VRN lookup API is polled for keeper details; a penalty service sends letters and emails; logs go to a data lake; operator, admin and public portals sit on an API" loading="lazy" />
+            </a>
+        </div>
+        <p class="muted small">Click the diagram to open it full size.</p>
+    </section>
+</main>
 
-<hr/>
-<h2>Architectural Diagram for a Car Park Rules Engine:</h2>
-<img src="~/images/architecturaldiagram.jpg" width="1200px" />
+@section Scripts {
+    <script>
+        // Example buttons fill in the form
+        document.querySelectorAll(".presets .chip").forEach(chip => chip.addEventListener("click", () => {
+            document.getElementById("VRN").value = chip.dataset.vrn;
+            document.getElementById("EntryTime").value = chip.dataset.entry;
+            document.getElementById("ExitTime").value = chip.dataset.exit;
+            document.getElementById("CarParkId").value = 1;
+        }));
+    </script>
+}

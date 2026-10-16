@@ -1,17 +1,51 @@
 ﻿@model EvaluateViewModel
+@{
+    ViewData["Title"] = "Evaluation result";
+    var result = Model.Result;
+}
 
-<h2>Evaluation Result</h2>
-<p><strong>VRN:</strong> @Model.VRN</p>
-<p><strong>Session Minutes:</strong> @Model.SessionMinutes</p>
-<p><strong>Allowed Minutes:</strong> @Model.AllowedMinutes</p>
-<p><strong>Overstay Minutes:</strong> @Model?.Result?.OverstayMinutes</p>
-<p><strong>Penalty:</strong> @(Model.Result.IsOverstay ? "YES" : "NO")</p>
-<p><strong>Charge:</strong> @Model?.Result.Charge</p>
-<h3>Trace</h3>
-<ul>
-    @foreach (var line in Model?.Result?.Trace)
-    {
-        <li>@line</li>
-    }
-</ul>
-<a href="/Evaluation/Index">Back</a>
+<section class="hero">
+    <div class="wrap">
+        <p class="eyebrow">Evaluation result</p>
+        <h1>@Model.VRN</h1>
+        <p class="lead">Car park @Model.CarParkId &middot; @Model.EntryTime.ToString("d MMM yyyy HH:mm") to @Model.ExitTime.ToString("HH:mm")</p>
+    </div>
+</section>
+
+<main class="wrap grid">
+    <section class="card card-wide" aria-labelledby="result-title">
+        <h2 id="result-title">
+            Outcome
+            @if (result?.IsOverstay == true)
+            {
+                <span class="badge badge-yes">Overstay: penalty</span>
+            }
+            else
+            {
+                <span class="badge badge-no">No penalty</span>
+            }
+            @if (result?.AppliedRule is { } rule)
+            {
+                <span class="badge badge-rule">@rule.RuleType (rule #@rule.ParkingRuleId)</span>
+            }
+        </h2>
+
+        <div class="stats">
+            <div class="stat"><span class="stat-label">Stayed</span><span class="stat-value">@Model.SessionMinutes min</span></div>
+            <div class="stat"><span class="stat-label">Allowed</span><span class="stat-value">@Model.AllowedMinutes min</span></div>
+            <div class="stat"><span class="stat-label">Overstay</span><span class="stat-value">@(result?.OverstayMinutes ?? 0) min</span></div>
+            <div class="stat"><span class="stat-label">Charge</span><span class="stat-value">@((result?.Charge ?? 0).ToString("0.00"))</span></div>
+        </div>
+
+        <h3>Trace</h3>
+        <p class="muted small">Each rule the engine looked at, in priority order.</p>
+        <ol class="trace">
+            @foreach (var line in result?.Trace ?? [])
+            {
+                <li>@line</li>
+            }
+        </ol>
+
+        <p><a class="button" asp-action="Index">Evaluate another</a></p>
+    </section>
+</main>
